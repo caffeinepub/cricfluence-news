@@ -45,6 +45,7 @@ import {
   Pin,
   Plus,
   RotateCcw,
+  Rss,
   Shield,
   Trash2,
   TrendingUp,
@@ -70,6 +71,7 @@ import {
   useUpdateArticle,
   useUpdateSponsor,
 } from "../hooks/useQueries";
+import { AutoFetchTab } from "./AutoFetchTab";
 
 // ── Category Config ──────────────────────────────────────────────
 
@@ -1619,6 +1621,14 @@ export function AdminPage() {
               Articles
             </TabsTrigger>
             <TabsTrigger
+              value="autofetch"
+              className="flex items-center gap-2"
+              data-ocid="admin.autofetch.tab"
+            >
+              <Rss className="w-4 h-4" />
+              Auto-Fetch
+            </TabsTrigger>
+            <TabsTrigger
               value="sponsors"
               className="flex items-center gap-2"
               data-ocid="admin.sponsors.tab"
@@ -1826,6 +1836,11 @@ export function AdminPage() {
                   })}
                 </div>
               ))}
+          </TabsContent>
+
+          {/* ── Auto-Fetch Tab ── */}
+          <TabsContent value="autofetch">
+            <AutoFetchTab />
           </TabsContent>
 
           {/* ── Sponsors Tab ── */}

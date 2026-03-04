@@ -1,4 +1,4 @@
-import { Menu, Shield, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useLogoUrl } from "../../hooks/useLogoStore";
@@ -78,19 +78,6 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               );
             })}
           </nav>
-
-          {/* ── Admin Link (desktop only) ── */}
-          <button
-            type="button"
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-600 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200 border border-transparent hover:border-border/60"
-            data-ocid="nav.admin.link"
-            onClick={() => {
-              window.location.hash = "#/admin";
-            }}
-          >
-            <Shield className="w-3.5 h-3.5" />
-            Admin
-          </button>
 
           {/* ── Mobile hamburger ── */}
           <button
