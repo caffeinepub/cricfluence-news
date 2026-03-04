@@ -8,28 +8,85 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Category = IDL.Variant({
+  'incidents' : IDL.Null,
+  'internationalNews' : IDL.Null,
+  'cricket' : IDL.Null,
+  'nationalNews' : IDL.Null,
+  'influencers' : IDL.Null,
+  'sports' : IDL.Null,
+});
+export const Position = IDL.Variant({
+  'mid' : IDL.Null,
+  'top' : IDL.Null,
+  'bottom' : IDL.Null,
+});
+export const Sponsor = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'linkUrl' : IDL.Text,
+  'createdAt' : IDL.Text,
+  'isActive' : IDL.Bool,
+  'imageUrl' : IDL.Text,
+  'position' : Position,
+});
 export const Article = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
   'content' : IDL.Text,
+  'views' : IDL.Nat,
   'publishedDate' : IDL.Text,
   'author' : IDL.Text,
+  'likes' : IDL.Nat,
   'summary' : IDL.Text,
   'imageUrl' : IDL.Text,
-  'category' : IDL.Text,
+  'category' : Category,
+});
+export const Comment = IDL.Record({
+  'id' : IDL.Nat,
+  'createdAt' : IDL.Text,
+  'text' : IDL.Text,
+  'author' : IDL.Text,
+  'articleId' : IDL.Nat,
+  'isPinned' : IDL.Bool,
 });
 
 export const idlService = IDL.Service({
   'createArticle' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, Category],
+      [IDL.Nat],
+      [],
+    ),
+  'createComment' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'createSponsor' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, Position, IDL.Text],
       [IDL.Nat],
       [],
     ),
   'deleteArticle' : IDL.Func([IDL.Nat], [], []),
+  'deleteComment' : IDL.Func([IDL.Nat], [], []),
+  'deleteSponsor' : IDL.Func([IDL.Nat], [], []),
+  'getActiveSponsorsByPosition' : IDL.Func(
+      [Position],
+      [IDL.Vec(Sponsor)],
+      ['query'],
+    ),
   'getAllArticles' : IDL.Func([], [IDL.Vec(Article)], ['query']),
+  'getAllComments' : IDL.Func([], [IDL.Vec(Comment)], ['query']),
+  'getAllSponsors' : IDL.Func([], [IDL.Vec(Sponsor)], ['query']),
   'getArticleById' : IDL.Func([IDL.Nat], [Article], ['query']),
-  'getArticlesByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Article)], ['query']),
+  'getArticlesByCategory' : IDL.Func([Category], [IDL.Vec(Article)], ['query']),
+  'getCommentsByArticle' : IDL.Func([IDL.Nat], [IDL.Vec(Comment)], ['query']),
+  'getSponsorById' : IDL.Func([IDL.Nat], [Sponsor], ['query']),
+  'likeArticle' : IDL.Func([IDL.Nat], [], []),
+  'recordView' : IDL.Func([IDL.Nat], [], []),
   'seedSampleData' : IDL.Func([], [], []),
+  'togglePinComment' : IDL.Func([IDL.Nat], [], []),
+  'toggleSponsorActive' : IDL.Func([IDL.Nat], [], []),
   'updateArticle' : IDL.Func(
       [
         IDL.Nat,
@@ -39,8 +96,13 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Text,
-        IDL.Text,
+        Category,
       ],
+      [],
+      [],
+    ),
+  'updateSponsor' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, Position],
       [],
       [],
     ),
@@ -49,32 +111,89 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Category = IDL.Variant({
+    'incidents' : IDL.Null,
+    'internationalNews' : IDL.Null,
+    'cricket' : IDL.Null,
+    'nationalNews' : IDL.Null,
+    'influencers' : IDL.Null,
+    'sports' : IDL.Null,
+  });
+  const Position = IDL.Variant({
+    'mid' : IDL.Null,
+    'top' : IDL.Null,
+    'bottom' : IDL.Null,
+  });
+  const Sponsor = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'linkUrl' : IDL.Text,
+    'createdAt' : IDL.Text,
+    'isActive' : IDL.Bool,
+    'imageUrl' : IDL.Text,
+    'position' : Position,
+  });
   const Article = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
     'content' : IDL.Text,
+    'views' : IDL.Nat,
     'publishedDate' : IDL.Text,
     'author' : IDL.Text,
+    'likes' : IDL.Nat,
     'summary' : IDL.Text,
     'imageUrl' : IDL.Text,
-    'category' : IDL.Text,
+    'category' : Category,
+  });
+  const Comment = IDL.Record({
+    'id' : IDL.Nat,
+    'createdAt' : IDL.Text,
+    'text' : IDL.Text,
+    'author' : IDL.Text,
+    'articleId' : IDL.Nat,
+    'isPinned' : IDL.Bool,
   });
   
   return IDL.Service({
     'createArticle' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, Category],
+        [IDL.Nat],
+        [],
+      ),
+    'createComment' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'createSponsor' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, Position, IDL.Text],
         [IDL.Nat],
         [],
       ),
     'deleteArticle' : IDL.Func([IDL.Nat], [], []),
+    'deleteComment' : IDL.Func([IDL.Nat], [], []),
+    'deleteSponsor' : IDL.Func([IDL.Nat], [], []),
+    'getActiveSponsorsByPosition' : IDL.Func(
+        [Position],
+        [IDL.Vec(Sponsor)],
+        ['query'],
+      ),
     'getAllArticles' : IDL.Func([], [IDL.Vec(Article)], ['query']),
+    'getAllComments' : IDL.Func([], [IDL.Vec(Comment)], ['query']),
+    'getAllSponsors' : IDL.Func([], [IDL.Vec(Sponsor)], ['query']),
     'getArticleById' : IDL.Func([IDL.Nat], [Article], ['query']),
     'getArticlesByCategory' : IDL.Func(
-        [IDL.Text],
+        [Category],
         [IDL.Vec(Article)],
         ['query'],
       ),
+    'getCommentsByArticle' : IDL.Func([IDL.Nat], [IDL.Vec(Comment)], ['query']),
+    'getSponsorById' : IDL.Func([IDL.Nat], [Sponsor], ['query']),
+    'likeArticle' : IDL.Func([IDL.Nat], [], []),
+    'recordView' : IDL.Func([IDL.Nat], [], []),
     'seedSampleData' : IDL.Func([], [], []),
+    'togglePinComment' : IDL.Func([IDL.Nat], [], []),
+    'toggleSponsorActive' : IDL.Func([IDL.Nat], [], []),
     'updateArticle' : IDL.Func(
         [
           IDL.Nat,
@@ -84,8 +203,13 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Text,
-          IDL.Text,
+          Category,
         ],
+        [],
+        [],
+      ),
+    'updateSponsor' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, Position],
         [],
         [],
       ),

@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Tag, User } from "lucide-react";
+import { ArrowLeft, Calendar, Eye, Heart, Tag, User } from "lucide-react";
 import { motion } from "motion/react";
-import { useArticleById } from "../hooks/useQueries";
+import { useEffect, useRef } from "react";
+import { CommentsSection } from "../components/CommentsSection";
+import {
+  useArticleById,
+  useLikeArticle,
+  useRecordView,
+} from "../hooks/useQueries";
 
 interface ArticlePageProps {
   articleId: bigint;
@@ -20,21 +26,69 @@ const SKELETON_WIDTHS = [
   "w-3/4",
 ];
 
+const CATEGORY_COLOR_MAP: Record<string, string> = {
+  cricket: "text-cricket-green",
+  influencers: "text-influencer-amber",
+  sports: "text-sky-400",
+  internationalnews: "text-violet-400",
+  nationalnews: "text-teal-400",
+  incidents: "text-red-400",
+};
+
+const CATEGORY_BG_MAP: Record<string, string> = {
+  cricket: "bg-cricket-green/15 border-cricket-green/30 text-cricket-green",
+  influencers:
+    "bg-influencer-amber/15 border-influencer-amber/30 text-influencer-amber",
+  sports: "bg-sky-400/15 border-sky-400/30 text-sky-400",
+  internationalnews: "bg-violet-400/15 border-violet-400/30 text-violet-400",
+  nationalnews: "bg-teal-400/15 border-teal-400/30 text-teal-400",
+  incidents: "bg-red-400/15 border-red-400/30 text-red-400",
+};
+
+function getCategoryNav(category: string): string {
+  const key = category.toLowerCase().replace(/\s+/g, "");
+  switch (key) {
+    case "cricket":
+      return "cricket";
+    case "influencers":
+      return "influencers";
+    case "sports":
+      return "sports";
+    case "internationalnews":
+      return "internationalnews";
+    case "nationalnews":
+      return "nationalnews";
+    case "incidents":
+      return "incidents";
+    default:
+      return "home";
+  }
+}
+
 export function ArticlePage({ articleId, onNavigate }: ArticlePageProps) {
   const { data: article, isLoading, isError } = useArticleById(articleId);
+  const recordView = useRecordView();
+  const likeMutation = useLikeArticle();
+  const viewRecorded = useRef(false);
 
-  const isCricket = article?.category.toLowerCase() === "cricket";
-  const fallbackImage = isCricket
-    ? "/assets/generated/cricket-featured.dim_800x500.jpg"
-    : "/assets/generated/influencer-featured.dim_800x500.jpg";
+  // Record view once on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: recordView.mutate is stable; intentionally excluded
+  useEffect(() => {
+    if (!viewRecorded.current && articleId) {
+      viewRecorded.current = true;
+      recordView.mutate(articleId);
+    }
+  }, [articleId]);
+
+  const catKey = article?.category.toLowerCase().replace(/\s+/g, "") ?? "";
+  const fallbackImage =
+    catKey === "cricket"
+      ? "/assets/generated/cricket-featured.dim_800x500.jpg"
+      : "/assets/generated/influencer-featured.dim_800x500.jpg";
 
   const handleBack = () => {
     if (article) {
-      onNavigate(
-        article.category.toLowerCase() === "cricket"
-          ? "cricket"
-          : "influencers",
-      );
+      onNavigate(getCategoryNav(article.category));
     } else {
       onNavigate("home");
     }
@@ -86,12 +140,13 @@ export function ArticlePage({ articleId, onNavigate }: ArticlePageProps) {
     );
   }
 
-  const categoryColor = isCricket
-    ? "text-cricket-green"
-    : "text-influencer-amber";
-  const categoryBg = isCricket
-    ? "bg-cricket-green/15 border-cricket-green/30 text-cricket-green"
-    : "bg-influencer-amber/15 border-influencer-amber/30 text-influencer-amber";
+  const categoryColor = CATEGORY_COLOR_MAP[catKey] ?? "text-muted-foreground";
+  const categoryBg =
+    CATEGORY_BG_MAP[catKey] ??
+    "bg-muted/15 border-border text-muted-foreground";
+
+  const likes = Number(article.likes ?? 0);
+  const views = Number(article.views ?? 0);
 
   return (
     <main className="min-h-screen" data-ocid="article.page">
@@ -158,6 +213,26 @@ export function ArticlePage({ articleId, onNavigate }: ArticlePageProps) {
               <Calendar className="w-4 h-4" />
               {article.publishedDate}
             </span>
+            {/* View count */}
+            <span className="flex items-center gap-1.5">
+              <Eye className="w-4 h-4" />
+              <span>
+                {views} {views === 1 ? "view" : "views"}
+              </span>
+            </span>
+            {/* Like button in meta */}
+            <button
+              type="button"
+              onClick={() => likeMutation.mutate(article.id)}
+              disabled={likeMutation.isPending}
+              className="flex items-center gap-1.5 hover:text-red-400 transition-colors duration-150 group/like"
+              data-ocid="article.like.button"
+            >
+              <Heart className="w-4 h-4 group-hover/like:fill-red-400 group-hover/like:text-red-400 transition-all duration-150" />
+              <span>
+                {likes} {likes === 1 ? "like" : "likes"}
+              </span>
+            </button>
           </div>
 
           {/* Summary (lead paragraph) */}
@@ -179,6 +254,9 @@ export function ArticlePage({ articleId, onNavigate }: ArticlePageProps) {
                 </p>
               ))}
           </div>
+
+          {/* Comments */}
+          <CommentsSection articleId={article.id} />
         </motion.div>
       </div>
     </main>

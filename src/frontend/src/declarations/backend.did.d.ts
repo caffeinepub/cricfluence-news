@@ -14,24 +14,72 @@ export interface Article {
   'id' : bigint,
   'title' : string,
   'content' : string,
+  'views' : bigint,
   'publishedDate' : string,
   'author' : string,
+  'likes' : bigint,
   'summary' : string,
   'imageUrl' : string,
-  'category' : string,
+  'category' : Category,
+}
+export type Category = { 'incidents' : null } |
+  { 'internationalNews' : null } |
+  { 'cricket' : null } |
+  { 'nationalNews' : null } |
+  { 'influencers' : null } |
+  { 'sports' : null };
+export interface Comment {
+  'id' : bigint,
+  'createdAt' : string,
+  'text' : string,
+  'author' : string,
+  'articleId' : bigint,
+  'isPinned' : boolean,
+}
+export type Position = { 'mid' : null } |
+  { 'top' : null } |
+  { 'bottom' : null };
+export interface Sponsor {
+  'id' : bigint,
+  'title' : string,
+  'linkUrl' : string,
+  'createdAt' : string,
+  'isActive' : boolean,
+  'imageUrl' : string,
+  'position' : Position,
 }
 export interface _SERVICE {
   'createArticle' : ActorMethod<
-    [string, string, string, string, string, string, string],
+    [string, string, string, string, string, string, Category],
+    bigint
+  >,
+  'createComment' : ActorMethod<[bigint, string, string, string], bigint>,
+  'createSponsor' : ActorMethod<
+    [string, string, string, Position, string],
     bigint
   >,
   'deleteArticle' : ActorMethod<[bigint], undefined>,
+  'deleteComment' : ActorMethod<[bigint], undefined>,
+  'deleteSponsor' : ActorMethod<[bigint], undefined>,
+  'getActiveSponsorsByPosition' : ActorMethod<[Position], Array<Sponsor>>,
   'getAllArticles' : ActorMethod<[], Array<Article>>,
+  'getAllComments' : ActorMethod<[], Array<Comment>>,
+  'getAllSponsors' : ActorMethod<[], Array<Sponsor>>,
   'getArticleById' : ActorMethod<[bigint], Article>,
-  'getArticlesByCategory' : ActorMethod<[string], Array<Article>>,
+  'getArticlesByCategory' : ActorMethod<[Category], Array<Article>>,
+  'getCommentsByArticle' : ActorMethod<[bigint], Array<Comment>>,
+  'getSponsorById' : ActorMethod<[bigint], Sponsor>,
+  'likeArticle' : ActorMethod<[bigint], undefined>,
+  'recordView' : ActorMethod<[bigint], undefined>,
   'seedSampleData' : ActorMethod<[], undefined>,
+  'togglePinComment' : ActorMethod<[bigint], undefined>,
+  'toggleSponsorActive' : ActorMethod<[bigint], undefined>,
   'updateArticle' : ActorMethod<
-    [bigint, string, string, string, string, string, string, string],
+    [bigint, string, string, string, string, string, string, Category],
+    undefined
+  >,
+  'updateSponsor' : ActorMethod<
+    [bigint, string, string, string, Position],
     undefined
   >,
 }

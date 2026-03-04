@@ -1,15 +1,36 @@
-import { Star, Trophy } from "lucide-react";
+import { AlertTriangle, Globe, MapPin, Star, Trophy } from "lucide-react";
 import { motion } from "motion/react";
+import { Position } from "../backend.d";
 import { ArticleCard } from "../components/ArticleCard";
 import { ArticleSkeleton } from "../components/ArticleSkeleton";
+import { SponsorBanner } from "../components/SponsorBanner";
 import { useArticlesByCategory } from "../hooks/useQueries";
 
+type CategoryName =
+  | "Cricket"
+  | "Influencers"
+  | "Sports"
+  | "International News"
+  | "National News"
+  | "Incidents";
+
 interface CategoryPageProps {
-  category: "Cricket" | "Influencers";
+  category: string;
   onNavigate: (page: string, articleId?: bigint) => void;
 }
 
-const CONFIG = {
+const CONFIG: Record<
+  CategoryName,
+  {
+    icon: React.ElementType;
+    color: string;
+    borderColor: string;
+    bgColor: string;
+    accentColor: string;
+    description: string;
+    heroBg: string;
+  }
+> = {
   Cricket: {
     icon: Trophy,
     color: "text-cricket-green",
@@ -30,7 +51,49 @@ const CONFIG = {
       "Viral moments, brand deals, creator gossip, and the latest from social media's biggest stars.",
     heroBg: "url('/assets/generated/influencer-featured.dim_800x500.jpg')",
   },
+  Sports: {
+    icon: Trophy,
+    color: "text-sky-400",
+    borderColor: "border-sky-400",
+    bgColor: "bg-sky-400/10",
+    accentColor: "bg-sky-400",
+    description:
+      "Comprehensive sports coverage — football, tennis, basketball, and every major sporting event worldwide.",
+    heroBg: "url('/assets/generated/cricket-featured.dim_800x500.jpg')",
+  },
+  "International News": {
+    icon: Globe,
+    color: "text-violet-400",
+    borderColor: "border-violet-400",
+    bgColor: "bg-violet-400/10",
+    accentColor: "bg-violet-400",
+    description:
+      "Breaking global stories, geopolitical developments, and events shaping the world from every continent.",
+    heroBg: "url('/assets/generated/influencer-featured.dim_800x500.jpg')",
+  },
+  "National News": {
+    icon: MapPin,
+    color: "text-teal-400",
+    borderColor: "border-teal-400",
+    bgColor: "bg-teal-400/10",
+    accentColor: "bg-teal-400",
+    description:
+      "Domestic updates, government policies, local events, and the stories that matter most within the country.",
+    heroBg: "url('/assets/generated/cricket-featured.dim_800x500.jpg')",
+  },
+  Incidents: {
+    icon: AlertTriangle,
+    color: "text-red-400",
+    borderColor: "border-red-400",
+    bgColor: "bg-red-400/10",
+    accentColor: "bg-red-400",
+    description:
+      "Urgent reports on accidents, emergencies, disasters, and breaking incidents as they unfold.",
+    heroBg: "url('/assets/generated/influencer-featured.dim_800x500.jpg')",
+  },
 };
+
+const DEFAULT_CONFIG = CONFIG.Cricket;
 
 export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
   const {
@@ -38,8 +101,31 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
     isLoading,
     isError,
   } = useArticlesByCategory(category);
-  const cfg = CONFIG[category];
+
+  // Normalize category key to look up config
+  const normalizedKey = ((): CategoryName => {
+    const lower = category.toLowerCase().replace(/\s+/g, "");
+    switch (lower) {
+      case "cricket":
+        return "Cricket";
+      case "influencers":
+        return "Influencers";
+      case "sports":
+        return "Sports";
+      case "internationalnews":
+        return "International News";
+      case "nationalnews":
+        return "National News";
+      case "incidents":
+        return "Incidents";
+      default:
+        return "Cricket";
+    }
+  })();
+
+  const cfg = CONFIG[normalizedKey] ?? DEFAULT_CONFIG;
   const Icon = cfg.icon;
+  const pageKey = category.toLowerCase().replace(/\s+/g, "");
 
   const sorted = articles
     ? [...articles].sort(
@@ -50,7 +136,7 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
     : [];
 
   return (
-    <main className="min-h-screen" data-ocid={`${category.toLowerCase()}.page`}>
+    <main className="min-h-screen" data-ocid={`${pageKey}.page`}>
       {/* Category Hero */}
       <section className="relative overflow-hidden h-48 md:h-64">
         <div
@@ -70,11 +156,11 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
             <div className={`flex items-center gap-2 ${cfg.color}`}>
               <Icon className="w-5 h-5" />
               <span className="text-xs font-mono font-600 uppercase tracking-widest">
-                {category}
+                {normalizedKey}
               </span>
             </div>
             <h1 className="font-display font-800 text-3xl md:text-4xl tracking-tight">
-              {category} News
+              {normalizedKey} News
             </h1>
             <p className="text-muted-foreground text-sm max-w-lg">
               {cfg.description}
@@ -97,7 +183,7 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
             />
             <span className="text-sm font-medium">
               {articles.length} {articles.length === 1 ? "article" : "articles"}{" "}
-              in {category}
+              in {normalizedKey}
             </span>
           </motion.div>
         )}
@@ -105,10 +191,10 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
         {isError && (
           <div
             className="flex flex-col items-center justify-center py-16 text-center"
-            data-ocid={`${category.toLowerCase()}.error_state`}
+            data-ocid={`${pageKey}.error_state`}
           >
             <p className="text-destructive font-medium mb-2">
-              Failed to load {category} articles
+              Failed to load {normalizedKey} articles
             </p>
             <p className="text-muted-foreground text-sm">
               Please try refreshing the page.
@@ -119,7 +205,7 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
         {isLoading && (
           <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            data-ocid={`${category.toLowerCase()}.loading_state`}
+            data-ocid={`${pageKey}.loading_state`}
           >
             {["s1", "s2", "s3", "s4", "s5", "s6"].map((k) => (
               <ArticleSkeleton key={k} />
@@ -130,7 +216,7 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
         {!isLoading && !isError && sorted.length > 0 && (
           <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            data-ocid={`${category.toLowerCase()}.list`}
+            data-ocid={`${pageKey}.list`}
           >
             {sorted.map((article, i) => (
               <ArticleCard
@@ -146,7 +232,7 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
         {!isLoading && !isError && sorted.length === 0 && (
           <div
             className="flex flex-col items-center justify-center py-24 text-center"
-            data-ocid={`${category.toLowerCase()}.empty_state`}
+            data-ocid={`${pageKey}.empty_state`}
           >
             <div
               className={`w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mb-4 ${cfg.borderColor}`}
@@ -154,21 +240,17 @@ export function CategoryPage({ category, onNavigate }: CategoryPageProps) {
               <Icon className={`w-6 h-6 ${cfg.color}`} />
             </div>
             <h3 className="font-display font-700 text-xl mb-2">
-              No {category} articles yet
+              No {normalizedKey} articles yet
             </h3>
             <p className="text-muted-foreground text-sm max-w-sm">
-              Be the first to publish a {category} story from the Admin panel.
+              Be the first to publish a {normalizedKey} story from the Admin
+              panel.
             </p>
-            <button
-              type="button"
-              onClick={() => onNavigate("admin")}
-              className="mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-              data-ocid={`${category.toLowerCase()}.admin.button`}
-            >
-              Go to Admin
-            </button>
           </div>
         )}
+
+        {/* Bottom Sponsor Banner */}
+        <SponsorBanner position={Position.bottom} />
       </div>
     </main>
   );

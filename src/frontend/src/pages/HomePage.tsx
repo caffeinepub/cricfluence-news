@@ -2,8 +2,10 @@ import { Rss, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { Article } from "../backend.d";
+import { Position } from "../backend.d";
 import { ArticleCard } from "../components/ArticleCard";
 import { ArticleSkeleton } from "../components/ArticleSkeleton";
+import { SponsorBanner } from "../components/SponsorBanner";
 import { useAllArticles, useSeedData } from "../hooks/useQueries";
 
 interface HomePageProps {
@@ -75,6 +77,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
+      {/* Top Sponsor Banner */}
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6">
+        <SponsorBanner position={Position.top} />
+      </div>
+
       {/* Content */}
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-10">
         {isError && (
@@ -128,6 +135,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 />
               </section>
             )}
+
+            {/* Mid Sponsor Banner */}
+            <SponsorBanner position={Position.mid} />
 
             {/* All Articles Grid */}
             {rest.length > 0 && (
@@ -185,6 +195,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
             )}
           </>
         )}
+
+        {/* Bottom Sponsor Banner */}
+        <SponsorBanner position={Position.bottom} />
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
-import { ArrowUpRight, Calendar, User } from "lucide-react";
+import { ArrowUpRight, Calendar, Eye, Heart, User } from "lucide-react";
 import { motion } from "motion/react";
 import type { Article } from "../backend.d";
+import { useLikeArticle } from "../hooks/useQueries";
 
 interface ArticleCardProps {
   article: Article;
@@ -9,13 +10,21 @@ interface ArticleCardProps {
   featured?: boolean;
 }
 
+const CATEGORY_COLOR: Record<string, string> = {
+  cricket: "text-cricket-green",
+  influencers: "text-influencer-amber",
+  sports: "text-sky-400",
+  internationalnews: "text-violet-400",
+  nationalnews: "text-teal-400",
+  incidents: "text-red-400",
+};
+
 function CategoryPill({ category }: { category: string }) {
-  const isCricket = category.toLowerCase() === "cricket";
+  const key = category.toLowerCase().replace(/\s+/g, "");
+  const colorClass = CATEGORY_COLOR[key] ?? "text-muted-foreground";
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 text-[11px] font-mono font-700 tracking-widest uppercase ${
-        isCricket ? "text-cricket-green" : "text-influencer-amber"
-      }`}
+      className={`inline-flex items-center px-2 py-0.5 text-[11px] font-mono font-700 tracking-widest uppercase ${colorClass}`}
     >
       {category}
     </span>
@@ -28,12 +37,30 @@ export function ArticleCard({
   index = 0,
   featured = false,
 }: ArticleCardProps) {
-  const isCricket = article.category.toLowerCase() === "cricket";
+  const catKey = article.category.toLowerCase().replace(/\s+/g, "");
+  const isCricket = catKey === "cricket";
   const fallbackImage = isCricket
     ? "/assets/generated/cricket-featured.dim_800x500.jpg"
     : "/assets/generated/influencer-featured.dim_800x500.jpg";
 
-  const accentClass = isCricket ? "bg-cricket-green" : "bg-influencer-amber";
+  const ACCENT_MAP: Record<string, string> = {
+    cricket: "bg-cricket-green",
+    influencers: "bg-influencer-amber",
+    sports: "bg-sky-400",
+    internationalnews: "bg-violet-400",
+    nationalnews: "bg-teal-400",
+    incidents: "bg-red-400",
+  };
+  const accentClass = ACCENT_MAP[catKey] ?? "bg-primary";
+
+  const likeMutation = useLikeArticle();
+  const likes = Number(article.likes ?? 0);
+  const views = Number(article.views ?? 0);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    likeMutation.mutate(article.id);
+  };
 
   return (
     <motion.article
@@ -121,12 +148,30 @@ export function ArticleCard({
         <div className="flex items-center justify-between mt-auto">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <User className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate max-w-[120px]">{article.author}</span>
+            <span className="truncate max-w-[100px]">{article.author}</span>
           </span>
-          <span className="flex items-center gap-1 text-xs font-600 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200 translate-x-1 group-hover:translate-x-0">
-            Read
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </span>
+
+          {/* Stats + like button */}
+          <div className="flex items-center gap-3">
+            {/* View count */}
+            <span className="flex items-center gap-1 text-xs text-muted-foreground/70">
+              <Eye className="w-3 h-3" />
+              <span>{views}</span>
+            </span>
+
+            {/* Like button */}
+            <button
+              type="button"
+              onClick={handleLike}
+              disabled={likeMutation.isPending}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-400 transition-colors duration-150 group/like"
+              data-ocid={`articles.like.button.${index + 1}`}
+              title="Like this article"
+            >
+              <Heart className="w-3.5 h-3.5 transition-all duration-150 group-hover/like:fill-red-400 group-hover/like:text-red-400" />
+              <span>{likes}</span>
+            </button>
+          </div>
         </div>
       </div>
     </motion.article>

@@ -93,34 +93,109 @@ export interface Article {
     id: bigint;
     title: string;
     content: string;
+    views: bigint;
     publishedDate: string;
     author: string;
+    likes: bigint;
     summary: string;
     imageUrl: string;
-    category: string;
+    category: Category;
+}
+export interface Comment {
+    id: bigint;
+    createdAt: string;
+    text: string;
+    author: string;
+    articleId: bigint;
+    isPinned: boolean;
+}
+export interface Sponsor {
+    id: bigint;
+    title: string;
+    linkUrl: string;
+    createdAt: string;
+    isActive: boolean;
+    imageUrl: string;
+    position: Position;
+}
+export enum Category {
+    incidents = "incidents",
+    internationalNews = "internationalNews",
+    cricket = "cricket",
+    nationalNews = "nationalNews",
+    influencers = "influencers",
+    sports = "sports"
+}
+export enum Position {
+    mid = "mid",
+    top = "top",
+    bottom = "bottom"
 }
 export interface backendInterface {
-    createArticle(title: string, category: string, summary: string, content: string, author: string, publishedDate: string, imageUrl: string): Promise<bigint>;
+    createArticle(title: string, content: string, publishedDate: string, author: string, summary: string, imageUrl: string, category: Category): Promise<bigint>;
+    createComment(articleId: bigint, author: string, text: string, createdAt: string): Promise<bigint>;
+    createSponsor(title: string, imageUrl: string, linkUrl: string, position: Position, createdAt: string): Promise<bigint>;
     deleteArticle(id: bigint): Promise<void>;
+    deleteComment(id: bigint): Promise<void>;
+    deleteSponsor(id: bigint): Promise<void>;
+    getActiveSponsorsByPosition(position: Position): Promise<Array<Sponsor>>;
     getAllArticles(): Promise<Array<Article>>;
+    getAllComments(): Promise<Array<Comment>>;
+    getAllSponsors(): Promise<Array<Sponsor>>;
     getArticleById(id: bigint): Promise<Article>;
-    getArticlesByCategory(category: string): Promise<Array<Article>>;
+    getArticlesByCategory(category: Category): Promise<Array<Article>>;
+    getCommentsByArticle(articleId: bigint): Promise<Array<Comment>>;
+    getSponsorById(id: bigint): Promise<Sponsor>;
+    likeArticle(id: bigint): Promise<void>;
+    recordView(id: bigint): Promise<void>;
     seedSampleData(): Promise<void>;
-    updateArticle(id: bigint, title: string, category: string, summary: string, content: string, author: string, publishedDate: string, imageUrl: string): Promise<void>;
+    togglePinComment(id: bigint): Promise<void>;
+    toggleSponsorActive(id: bigint): Promise<void>;
+    updateArticle(id: bigint, title: string, content: string, publishedDate: string, author: string, summary: string, imageUrl: string, category: Category): Promise<void>;
+    updateSponsor(id: bigint, title: string, imageUrl: string, linkUrl: string, position: Position): Promise<void>;
 }
+import type { Article as _Article, Category as _Category, Position as _Position, Sponsor as _Sponsor } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async createArticle(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<bigint> {
+    async createArticle(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: Category): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.createArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.createArticle(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Category_n1(this._uploadFile, this._downloadFile, arg6));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            const result = await this.actor.createArticle(arg0, arg1, arg2, arg3, arg4, arg5, to_candid_Category_n1(this._uploadFile, this._downloadFile, arg6));
+            return result;
+        }
+    }
+    async createComment(arg0: bigint, arg1: string, arg2: string, arg3: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createComment(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createComment(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async createSponsor(arg0: string, arg1: string, arg2: string, arg3: Position, arg4: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createSponsor(arg0, arg1, arg2, to_candid_Position_n3(this._uploadFile, this._downloadFile, arg3), arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createSponsor(arg0, arg1, arg2, to_candid_Position_n3(this._uploadFile, this._downloadFile, arg3), arg4);
             return result;
         }
     }
@@ -138,45 +213,171 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteComment(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteComment(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteComment(arg0);
+            return result;
+        }
+    }
+    async deleteSponsor(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteSponsor(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteSponsor(arg0);
+            return result;
+        }
+    }
+    async getActiveSponsorsByPosition(arg0: Position): Promise<Array<Sponsor>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getActiveSponsorsByPosition(to_candid_Position_n3(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getActiveSponsorsByPosition(to_candid_Position_n3(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getAllArticles(): Promise<Array<Article>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllArticles();
-                return result;
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllArticles();
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllComments(): Promise<Array<Comment>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllComments();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllComments();
             return result;
+        }
+    }
+    async getAllSponsors(): Promise<Array<Sponsor>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllSponsors();
+                return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllSponsors();
+            return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
         }
     }
     async getArticleById(arg0: bigint): Promise<Article> {
         if (this.processError) {
             try {
                 const result = await this.actor.getArticleById(arg0);
-                return result;
+                return from_candid_Article_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getArticleById(arg0);
-            return result;
+            return from_candid_Article_n11(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getArticlesByCategory(arg0: string): Promise<Array<Article>> {
+    async getArticlesByCategory(arg0: Category): Promise<Array<Article>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getArticlesByCategory(arg0);
+                const result = await this.actor.getArticlesByCategory(to_candid_Category_n1(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getArticlesByCategory(to_candid_Category_n1(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCommentsByArticle(arg0: bigint): Promise<Array<Comment>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCommentsByArticle(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getArticlesByCategory(arg0);
+            const result = await this.actor.getCommentsByArticle(arg0);
+            return result;
+        }
+    }
+    async getSponsorById(arg0: bigint): Promise<Sponsor> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSponsorById(arg0);
+                return from_candid_Sponsor_n6(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSponsorById(arg0);
+            return from_candid_Sponsor_n6(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async likeArticle(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.likeArticle(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.likeArticle(arg0);
+            return result;
+        }
+    }
+    async recordView(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.recordView(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.recordView(arg0);
             return result;
         }
     }
@@ -194,20 +395,215 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateArticle(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string): Promise<void> {
+    async togglePinComment(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                const result = await this.actor.togglePinComment(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            const result = await this.actor.togglePinComment(arg0);
             return result;
         }
     }
+    async toggleSponsorActive(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.toggleSponsorActive(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.toggleSponsorActive(arg0);
+            return result;
+        }
+    }
+    async updateArticle(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: Category): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6, to_candid_Category_n1(this._uploadFile, this._downloadFile, arg7));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateArticle(arg0, arg1, arg2, arg3, arg4, arg5, arg6, to_candid_Category_n1(this._uploadFile, this._downloadFile, arg7));
+            return result;
+        }
+    }
+    async updateSponsor(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: Position): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateSponsor(arg0, arg1, arg2, arg3, to_candid_Position_n3(this._uploadFile, this._downloadFile, arg4));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateSponsor(arg0, arg1, arg2, arg3, to_candid_Position_n3(this._uploadFile, this._downloadFile, arg4));
+            return result;
+        }
+    }
+}
+function from_candid_Article_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Article): Article {
+    return from_candid_record_n12(_uploadFile, _downloadFile, value);
+}
+function from_candid_Category_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Category): Category {
+    return from_candid_variant_n14(_uploadFile, _downloadFile, value);
+}
+function from_candid_Position_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Position): Position {
+    return from_candid_variant_n9(_uploadFile, _downloadFile, value);
+}
+function from_candid_Sponsor_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Sponsor): Sponsor {
+    return from_candid_record_n7(_uploadFile, _downloadFile, value);
+}
+function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    title: string;
+    content: string;
+    views: bigint;
+    publishedDate: string;
+    author: string;
+    likes: bigint;
+    summary: string;
+    imageUrl: string;
+    category: _Category;
+}): {
+    id: bigint;
+    title: string;
+    content: string;
+    views: bigint;
+    publishedDate: string;
+    author: string;
+    likes: bigint;
+    summary: string;
+    imageUrl: string;
+    category: Category;
+} {
+    return {
+        id: value.id,
+        title: value.title,
+        content: value.content,
+        views: value.views,
+        publishedDate: value.publishedDate,
+        author: value.author,
+        likes: value.likes,
+        summary: value.summary,
+        imageUrl: value.imageUrl,
+        category: from_candid_Category_n13(_uploadFile, _downloadFile, value.category)
+    };
+}
+function from_candid_record_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    title: string;
+    linkUrl: string;
+    createdAt: string;
+    isActive: boolean;
+    imageUrl: string;
+    position: _Position;
+}): {
+    id: bigint;
+    title: string;
+    linkUrl: string;
+    createdAt: string;
+    isActive: boolean;
+    imageUrl: string;
+    position: Position;
+} {
+    return {
+        id: value.id,
+        title: value.title,
+        linkUrl: value.linkUrl,
+        createdAt: value.createdAt,
+        isActive: value.isActive,
+        imageUrl: value.imageUrl,
+        position: from_candid_Position_n8(_uploadFile, _downloadFile, value.position)
+    };
+}
+function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    incidents: null;
+} | {
+    internationalNews: null;
+} | {
+    cricket: null;
+} | {
+    nationalNews: null;
+} | {
+    influencers: null;
+} | {
+    sports: null;
+}): Category {
+    return "incidents" in value ? Category.incidents : "internationalNews" in value ? Category.internationalNews : "cricket" in value ? Category.cricket : "nationalNews" in value ? Category.nationalNews : "influencers" in value ? Category.influencers : "sports" in value ? Category.sports : value;
+}
+function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    mid: null;
+} | {
+    top: null;
+} | {
+    bottom: null;
+}): Position {
+    return "mid" in value ? Position.mid : "top" in value ? Position.top : "bottom" in value ? Position.bottom : value;
+}
+function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Article>): Array<Article> {
+    return value.map((x)=>from_candid_Article_n11(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Sponsor>): Array<Sponsor> {
+    return value.map((x)=>from_candid_Sponsor_n6(_uploadFile, _downloadFile, x));
+}
+function to_candid_Category_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): _Category {
+    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_Position_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Position): _Position {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
+}
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): {
+    incidents: null;
+} | {
+    internationalNews: null;
+} | {
+    cricket: null;
+} | {
+    nationalNews: null;
+} | {
+    influencers: null;
+} | {
+    sports: null;
+} {
+    return value == Category.incidents ? {
+        incidents: null
+    } : value == Category.internationalNews ? {
+        internationalNews: null
+    } : value == Category.cricket ? {
+        cricket: null
+    } : value == Category.nationalNews ? {
+        nationalNews: null
+    } : value == Category.influencers ? {
+        influencers: null
+    } : value == Category.sports ? {
+        sports: null
+    } : value;
+}
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Position): {
+    mid: null;
+} | {
+    top: null;
+} | {
+    bottom: null;
+} {
+    return value == Position.mid ? {
+        mid: null
+    } : value == Position.top ? {
+        top: null
+    } : value == Position.bottom ? {
+        bottom: null
+    } : value;
 }
 export interface CreateActorOptions {
     agent?: Agent;
