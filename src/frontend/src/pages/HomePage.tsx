@@ -28,7 +28,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
     }
   }, [actor, refetch]);
 
-  // Seed data on first load if empty (only after actor is confirmed ready)
+  // Seed sample data on first load only if empty -- swallow any trap error
+  // (backend traps if already seeded, which is expected on revisit)
   useEffect(() => {
     if (
       actor &&
@@ -39,9 +40,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
       !seedMutation.isPending
     ) {
       seededRef.current = true;
-      seedMutation.mutate();
+      seedMutation.mutate(undefined, {
+        onError: () => {
+          // Trap means already seeded — refetch to get the data
+          refetch();
+        },
+      });
     }
-  }, [actor, isLoading, articles, seedMutation]);
+  }, [actor, isLoading, articles, seedMutation, refetch]);
 
   const sortedArticles = articles
     ? [...articles].sort(

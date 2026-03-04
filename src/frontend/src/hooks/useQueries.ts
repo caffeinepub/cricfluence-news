@@ -40,12 +40,14 @@ export function useAllArticles() {
     queryKey: QUERY_KEYS.allArticles,
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getAllArticles();
+      const result = await actor.getAllArticles();
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: 1500,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -57,12 +59,14 @@ export function useArticlesByCategory(category: string) {
     queryKey: QUERY_KEYS.articlesByCategory(cat),
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getArticlesByCategory(cat);
+      const result = await actor.getArticlesByCategory(cat);
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: 1500,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -73,12 +77,17 @@ export function useArticleById(id: bigint | null) {
     queryKey: QUERY_KEYS.articleById(id ?? BigInt(0)),
     queryFn: async () => {
       if (!actor || id === null) return null;
-      return actor.getArticleById(id);
+      try {
+        return await actor.getArticleById(id);
+      } catch {
+        return null;
+      }
     },
     enabled: !!actor && !isFetching && id !== null,
     retry: 3,
-    retryDelay: 1500,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -213,12 +222,14 @@ export function useAllSponsors() {
     queryKey: QUERY_KEYS.allSponsors,
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getAllSponsors();
+      const result = await actor.getAllSponsors();
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: 1500,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -229,12 +240,14 @@ export function useActiveSponsorsByPosition(position: Position) {
     queryKey: QUERY_KEYS.sponsorsByPosition(position),
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getActiveSponsorsByPosition(position);
+      const result = await actor.getActiveSponsorsByPosition(position);
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: 1500,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -348,12 +361,14 @@ export function useCommentsByArticle(articleId: bigint) {
     queryKey: ["comments", articleId.toString()],
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getCommentsByArticle(articleId);
+      const result = await actor.getCommentsByArticle(articleId);
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
     retry: 3,
-    retryDelay: 1500,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
@@ -364,12 +379,14 @@ export function useAllComments() {
     queryKey: ["comments"],
     queryFn: async () => {
       if (!actor) throw new Error("Actor not ready");
-      return actor.getAllComments();
+      const result = await actor.getAllComments();
+      return Array.isArray(result) ? result : [];
     },
     enabled: !!actor && !isFetching,
     retry: 3,
-    retryDelay: 1500,
+    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
     refetchOnMount: true,
+    refetchOnWindowFocus: false,
     staleTime: 0,
   });
 }
