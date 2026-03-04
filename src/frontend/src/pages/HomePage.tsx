@@ -6,6 +6,7 @@ import { Position } from "../backend.d";
 import { ArticleCard } from "../components/ArticleCard";
 import { ArticleSkeleton } from "../components/ArticleSkeleton";
 import { SponsorBanner } from "../components/SponsorBanner";
+import { useActor } from "../hooks/useActor";
 import { useAllArticles, useSeedData } from "../hooks/useQueries";
 
 interface HomePageProps {
@@ -13,17 +14,34 @@ interface HomePageProps {
 }
 
 export function HomePage({ onNavigate }: HomePageProps) {
-  const { data: articles, isLoading, isError } = useAllArticles();
+  const { actor } = useActor();
+  const { data: articles, isLoading, isError, refetch } = useAllArticles();
   const seedMutation = useSeedData();
   const seededRef = useRef(false);
+  const actorReadyRef = useRef(false);
 
-  // Seed data on first load if empty
+  // When actor becomes available for the first time, force a refetch
   useEffect(() => {
-    if (!isLoading && articles && articles.length === 0 && !seededRef.current) {
+    if (actor && !actorReadyRef.current) {
+      actorReadyRef.current = true;
+      refetch();
+    }
+  }, [actor, refetch]);
+
+  // Seed data on first load if empty (only after actor is confirmed ready)
+  useEffect(() => {
+    if (
+      actor &&
+      !isLoading &&
+      articles !== undefined &&
+      articles.length === 0 &&
+      !seededRef.current &&
+      !seedMutation.isPending
+    ) {
       seededRef.current = true;
       seedMutation.mutate();
     }
-  }, [isLoading, articles, seedMutation]);
+  }, [actor, isLoading, articles, seedMutation]);
 
   const sortedArticles = articles
     ? [...articles].sort(

@@ -39,10 +39,14 @@ export function useAllArticles() {
   return useQuery<Article[]>({
     queryKey: QUERY_KEYS.allArticles,
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getAllArticles();
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -52,10 +56,14 @@ export function useArticlesByCategory(category: string) {
   return useQuery<Article[]>({
     queryKey: QUERY_KEYS.articlesByCategory(cat),
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getArticlesByCategory(cat);
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -68,6 +76,10 @@ export function useArticleById(id: bigint | null) {
       return actor.getArticleById(id);
     },
     enabled: !!actor && !isFetching && id !== null,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -200,10 +212,14 @@ export function useAllSponsors() {
   return useQuery<Sponsor[]>({
     queryKey: QUERY_KEYS.allSponsors,
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getAllSponsors();
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -212,10 +228,14 @@ export function useActiveSponsorsByPosition(position: Position) {
   return useQuery<Sponsor[]>({
     queryKey: QUERY_KEYS.sponsorsByPosition(position),
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getActiveSponsorsByPosition(position);
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -327,10 +347,14 @@ export function useCommentsByArticle(articleId: bigint) {
   return useQuery<Comment[]>({
     queryKey: ["comments", articleId.toString()],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getCommentsByArticle(articleId);
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
@@ -339,10 +363,14 @@ export function useAllComments() {
   return useQuery<Comment[]>({
     queryKey: ["comments"],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error("Actor not ready");
       return actor.getAllComments();
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: 1500,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 }
 
