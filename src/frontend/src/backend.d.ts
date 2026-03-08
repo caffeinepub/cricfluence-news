@@ -19,6 +19,11 @@ export interface Article {
     imageUrl: string;
     category: Category;
 }
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
 export interface Comment {
     id: bigint;
     createdAt: string;
@@ -26,6 +31,10 @@ export interface Comment {
     author: string;
     articleId: bigint;
     isPinned: boolean;
+}
+export interface TransformationInput {
+    context: Uint8Array;
+    response: http_request_result;
 }
 export interface Sponsor {
     id: bigint;
@@ -35,6 +44,15 @@ export interface Sponsor {
     isActive: boolean;
     imageUrl: string;
     position: Position;
+}
+export interface http_header {
+    value: string;
+    name: string;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
 }
 export enum Category {
     incidents = "incidents",
@@ -56,6 +74,7 @@ export interface backendInterface {
     deleteArticle(id: bigint): Promise<void>;
     deleteComment(id: bigint): Promise<void>;
     deleteSponsor(id: bigint): Promise<void>;
+    generateNewsArticle(topic: string, category: string, tone: string, wordTarget: bigint): Promise<string>;
     getActiveSponsorsByPosition(position: Position): Promise<Array<Sponsor>>;
     getAllArticles(): Promise<Array<Article>>;
     getAllComments(): Promise<Array<Comment>>;
@@ -69,6 +88,7 @@ export interface backendInterface {
     seedSampleData(): Promise<void>;
     togglePinComment(id: bigint): Promise<void>;
     toggleSponsorActive(id: bigint): Promise<void>;
+    transform(input: TransformationInput): Promise<TransformationOutput>;
     updateArticle(id: bigint, title: string, content: string, publishedDate: string, author: string, summary: string, imageUrl: string, category: Category): Promise<void>;
     updateSponsor(id: bigint, title: string, imageUrl: string, linkUrl: string, position: Position): Promise<void>;
 }

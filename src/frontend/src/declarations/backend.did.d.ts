@@ -48,6 +48,21 @@ export interface Sponsor {
   'imageUrl' : string,
   'position' : Position,
 }
+export interface TransformationInput {
+  'context' : Uint8Array,
+  'response' : http_request_result,
+}
+export interface TransformationOutput {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
+}
+export interface http_header { 'value' : string, 'name' : string }
+export interface http_request_result {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
+}
 export interface _SERVICE {
   'createArticle' : ActorMethod<
     [string, string, string, string, string, string, Category],
@@ -61,6 +76,7 @@ export interface _SERVICE {
   'deleteArticle' : ActorMethod<[bigint], undefined>,
   'deleteComment' : ActorMethod<[bigint], undefined>,
   'deleteSponsor' : ActorMethod<[bigint], undefined>,
+  'generateNewsArticle' : ActorMethod<[string, string, string, bigint], string>,
   'getActiveSponsorsByPosition' : ActorMethod<[Position], Array<Sponsor>>,
   'getAllArticles' : ActorMethod<[], Array<Article>>,
   'getAllComments' : ActorMethod<[], Array<Comment>>,
@@ -74,6 +90,7 @@ export interface _SERVICE {
   'seedSampleData' : ActorMethod<[], undefined>,
   'togglePinComment' : ActorMethod<[bigint], undefined>,
   'toggleSponsorActive' : ActorMethod<[bigint], undefined>,
+  'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateArticle' : ActorMethod<
     [bigint, string, string, string, string, string, string, Category],
     undefined

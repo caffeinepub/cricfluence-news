@@ -1,4 +1,4 @@
-import { Rss, TrendingUp } from "lucide-react";
+import { RefreshCw, Rss, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import type { Article } from "../backend.d";
@@ -18,36 +18,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const { data: articles, isLoading, isError, refetch } = useAllArticles();
   const seedMutation = useSeedData();
   const seededRef = useRef(false);
-  const actorReadyRef = useRef(false);
 
-  // When actor becomes available for the first time, force a refetch
-  useEffect(() => {
-    if (actor && !actorReadyRef.current) {
-      actorReadyRef.current = true;
-      refetch();
-    }
-  }, [actor, refetch]);
-
-  // Seed sample data on first load only if empty -- swallow any trap error
-  // (backend traps if already seeded, which is expected on revisit)
+  // Seed sample data on first load only if empty
+  // useSeedData swallows the backend trap when already seeded and refetches automatically
   useEffect(() => {
     if (
       actor &&
       !isLoading &&
-      articles !== undefined &&
+      !isError &&
+      Array.isArray(articles) &&
       articles.length === 0 &&
       !seededRef.current &&
       !seedMutation.isPending
     ) {
       seededRef.current = true;
       seedMutation.mutate(undefined, {
-        onError: () => {
-          // Trap means already seeded — refetch to get the data
-          refetch();
+        onSettled: () => {
+          setTimeout(() => refetch(), 400);
         },
       });
     }
-  }, [actor, isLoading, articles, seedMutation, refetch]);
+  }, [actor, isLoading, isError, articles, seedMutation, refetch]);
 
   const sortedArticles = articles
     ? [...articles].sort(
@@ -113,12 +104,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
             className="flex flex-col items-center justify-center py-16 text-center"
             data-ocid="home.error_state"
           >
-            <p className="text-destructive font-medium mb-2">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <RefreshCw className="w-6 h-6 text-destructive" />
+            </div>
+            <p className="text-destructive font-semibold mb-1">
               Failed to load articles
             </p>
-            <p className="text-muted-foreground text-sm">
-              Please try refreshing the page.
+            <p className="text-muted-foreground text-sm mb-4">
+              The network may be slow. Please try again.
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                seededRef.current = false;
+                refetch();
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+              data-ocid="home.retry.button"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
           </div>
         )}
 

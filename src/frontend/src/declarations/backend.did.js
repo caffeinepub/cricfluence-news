@@ -50,6 +50,24 @@ export const Comment = IDL.Record({
   'articleId' : IDL.Nat,
   'isPinned' : IDL.Bool,
 });
+export const http_header = IDL.Record({
+  'value' : IDL.Text,
+  'name' : IDL.Text,
+});
+export const http_request_result = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
+});
+export const TransformationInput = IDL.Record({
+  'context' : IDL.Vec(IDL.Nat8),
+  'response' : http_request_result,
+});
+export const TransformationOutput = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
+});
 
 export const idlService = IDL.Service({
   'createArticle' : IDL.Func(
@@ -70,6 +88,11 @@ export const idlService = IDL.Service({
   'deleteArticle' : IDL.Func([IDL.Nat], [], []),
   'deleteComment' : IDL.Func([IDL.Nat], [], []),
   'deleteSponsor' : IDL.Func([IDL.Nat], [], []),
+  'generateNewsArticle' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Text],
+      [],
+    ),
   'getActiveSponsorsByPosition' : IDL.Func(
       [Position],
       [IDL.Vec(Sponsor)],
@@ -87,6 +110,11 @@ export const idlService = IDL.Service({
   'seedSampleData' : IDL.Func([], [], []),
   'togglePinComment' : IDL.Func([IDL.Nat], [], []),
   'toggleSponsorActive' : IDL.Func([IDL.Nat], [], []),
+  'transform' : IDL.Func(
+      [TransformationInput],
+      [TransformationOutput],
+      ['query'],
+    ),
   'updateArticle' : IDL.Func(
       [
         IDL.Nat,
@@ -153,6 +181,21 @@ export const idlFactory = ({ IDL }) => {
     'articleId' : IDL.Nat,
     'isPinned' : IDL.Bool,
   });
+  const http_header = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
+  const http_request_result = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
+  });
+  const TransformationInput = IDL.Record({
+    'context' : IDL.Vec(IDL.Nat8),
+    'response' : http_request_result,
+  });
+  const TransformationOutput = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
+  });
   
   return IDL.Service({
     'createArticle' : IDL.Func(
@@ -173,6 +216,11 @@ export const idlFactory = ({ IDL }) => {
     'deleteArticle' : IDL.Func([IDL.Nat], [], []),
     'deleteComment' : IDL.Func([IDL.Nat], [], []),
     'deleteSponsor' : IDL.Func([IDL.Nat], [], []),
+    'generateNewsArticle' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Text],
+        [],
+      ),
     'getActiveSponsorsByPosition' : IDL.Func(
         [Position],
         [IDL.Vec(Sponsor)],
@@ -194,6 +242,11 @@ export const idlFactory = ({ IDL }) => {
     'seedSampleData' : IDL.Func([], [], []),
     'togglePinComment' : IDL.Func([IDL.Nat], [], []),
     'toggleSponsorActive' : IDL.Func([IDL.Nat], [], []),
+    'transform' : IDL.Func(
+        [TransformationInput],
+        [TransformationOutput],
+        ['query'],
+      ),
     'updateArticle' : IDL.Func(
         [
           IDL.Nat,

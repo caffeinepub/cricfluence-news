@@ -47,6 +47,7 @@ import {
   RotateCcw,
   Rss,
   Shield,
+  Sparkles,
   Trash2,
   TrendingUp,
   X,
@@ -71,6 +72,7 @@ import {
   useUpdateArticle,
   useUpdateSponsor,
 } from "../hooks/useQueries";
+import { AIWriterTab } from "./AIWriterTab";
 import { AutoFetchTab } from "./AutoFetchTab";
 
 // ── Category Config ──────────────────────────────────────────────
@@ -1629,6 +1631,14 @@ export function AdminPage() {
               Auto-Fetch
             </TabsTrigger>
             <TabsTrigger
+              value="aiwriter"
+              className="flex items-center gap-2"
+              data-ocid="admin.aiwriter.tab"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Writer
+            </TabsTrigger>
+            <TabsTrigger
               value="sponsors"
               className="flex items-center gap-2"
               data-ocid="admin.sponsors.tab"
@@ -1841,6 +1851,11 @@ export function AdminPage() {
           {/* ── Auto-Fetch Tab ── */}
           <TabsContent value="autofetch">
             <AutoFetchTab />
+          </TabsContent>
+
+          {/* ── AI Writer Tab ── */}
+          <TabsContent value="aiwriter">
+            <AIWriterTab />
           </TabsContent>
 
           {/* ── Sponsors Tab ── */}

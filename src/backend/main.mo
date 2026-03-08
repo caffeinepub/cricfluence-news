@@ -4,8 +4,7 @@ import Order "mo:core/Order";
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
-
-
+import OutCall "http-outcalls/outcall";
 
 actor {
   type Article = {
@@ -81,6 +80,9 @@ actor {
 
   var nextCommentId = 1;
   let comments = Map.empty<Nat, Comment>();
+
+  // AI integration setup
+  var anthropicApiKey : Text = "ANTHROPIC_API_KEY";
 
   public shared ({ caller }) func seedSampleData() : async () {
     if (articles.size() > 0) { Runtime.trap("Already seeded") };
@@ -431,5 +433,45 @@ actor {
         comments.add(id, updatedComment);
       };
     };
+  };
+
+  // AI-powered article generation
+  public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
+    OutCall.transform(input);
+  };
+
+  public shared ({ caller }) func generateNewsArticle(topic : Text, category : Text, tone : Text, wordTarget : Nat) : async Text {
+    let apiUrl = "https://api.anthropic.com/v1/messages";
+    let headers = [
+      {
+        name = "Content-Type";
+        value = "application/json";
+      },
+      {
+        name = "x-api-key";
+        value = anthropicApiKey;
+      },
+      {
+        name = "anthropic-version";
+        value = "2023-06-01";
+      },
+    ];
+    let requestBody = "{
+          \"model\": \"claude-sonnet-4-20250514\",
+          \"max_tokens\": 4000,
+          \"system\": \"Write a complete news article as a JSON object only (no markdown, no backticks) with these fields: title, metaDescription, category, readTime, tags (array), sources (array), publishDate, breaking (bool), intro, sections (array of {heading, content}), keyPoints (array), conclusion\",
+          \"messages\": [
+            {
+              \"role\": \"user\",
+              \"content\": [
+                {
+                  \"type\": \"text\",
+                  \"text\": \"Topic: " # topic # "\\nCategory: " # category # "\\nTone: " # tone # "\\nTarget: ~" # wordTarget.toText() # " words\\n\\nWrite a complete, well-researched news article as a JSON object only. No markdown fences, no backticks. Just raw JSON.\"
+                }
+              ]
+            }
+          ]
+        }";
+    await OutCall.httpPostRequest(apiUrl, headers, requestBody, transform);
   };
 };

@@ -35,7 +35,7 @@ function mapCategory(cat: string): Category {
 // ── Read Queries – Articles ─────────────────────────────────────
 
 export function useAllArticles() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Article[]>({
     queryKey: QUERY_KEYS.allArticles,
     queryFn: async () => {
@@ -43,17 +43,17 @@ export function useAllArticles() {
       const result = await actor.getAllArticles();
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 5,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
+    enabled: !!actor,
+    retry: 10,
+    retryDelay: (attempt) => Math.min(600 * 1.5 ** attempt, 15000),
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     staleTime: 0,
   });
 }
 
 export function useArticlesByCategory(category: string) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   const cat = mapCategory(category);
   return useQuery<Article[]>({
     queryKey: QUERY_KEYS.articlesByCategory(cat),
@@ -62,9 +62,9 @@ export function useArticlesByCategory(category: string) {
       const result = await actor.getArticlesByCategory(cat);
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 5,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
+    enabled: !!actor,
+    retry: 8,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 12000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
@@ -72,7 +72,7 @@ export function useArticlesByCategory(category: string) {
 }
 
 export function useArticleById(id: bigint | null) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Article | null>({
     queryKey: QUERY_KEYS.articleById(id ?? BigInt(0)),
     queryFn: async () => {
@@ -83,9 +83,9 @@ export function useArticleById(id: bigint | null) {
         return null;
       }
     },
-    enabled: !!actor && !isFetching && id !== null,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
+    enabled: !!actor && id !== null,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
@@ -100,9 +100,18 @@ export function useSeedData() {
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error("No actor");
-      return actor.seedSampleData();
+      try {
+        return await actor.seedSampleData();
+      } catch (_e) {
+        // Backend traps if already seeded -- swallow and treat as success
+        return;
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allArticles });
+    },
+    onError: () => {
+      // Also refetch on error -- backend may already have data
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allArticles });
     },
   });
@@ -217,7 +226,7 @@ export function useRecordView() {
 // ── Read Queries – Sponsors ─────────────────────────────────────
 
 export function useAllSponsors() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Sponsor[]>({
     queryKey: QUERY_KEYS.allSponsors,
     queryFn: async () => {
@@ -225,9 +234,9 @@ export function useAllSponsors() {
       const result = await actor.getAllSponsors();
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 5,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
+    enabled: !!actor,
+    retry: 8,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 12000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
@@ -235,7 +244,7 @@ export function useAllSponsors() {
 }
 
 export function useActiveSponsorsByPosition(position: Position) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Sponsor[]>({
     queryKey: QUERY_KEYS.sponsorsByPosition(position),
     queryFn: async () => {
@@ -243,9 +252,9 @@ export function useActiveSponsorsByPosition(position: Position) {
       const result = await actor.getActiveSponsorsByPosition(position);
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 5,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 10000),
+    enabled: !!actor,
+    retry: 8,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 12000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
@@ -356,7 +365,7 @@ export function useToggleSponsorActive() {
 // ── Read Queries – Comments ─────────────────────────────────────
 
 export function useCommentsByArticle(articleId: bigint) {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Comment[]>({
     queryKey: ["comments", articleId.toString()],
     queryFn: async () => {
@@ -364,9 +373,9 @@ export function useCommentsByArticle(articleId: bigint) {
       const result = await actor.getCommentsByArticle(articleId);
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
+    enabled: !!actor,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
@@ -374,7 +383,7 @@ export function useCommentsByArticle(articleId: bigint) {
 }
 
 export function useAllComments() {
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   return useQuery<Comment[]>({
     queryKey: ["comments"],
     queryFn: async () => {
@@ -382,9 +391,9 @@ export function useAllComments() {
       const result = await actor.getAllComments();
       return Array.isArray(result) ? result : [];
     },
-    enabled: !!actor && !isFetching,
-    retry: 3,
-    retryDelay: (attempt) => Math.min(1000 * 1.5 ** attempt, 8000),
+    enabled: !!actor,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(800 * 1.5 ** attempt, 10000),
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 0,
