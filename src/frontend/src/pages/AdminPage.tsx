@@ -50,6 +50,7 @@ import {
   Sparkles,
   Trash2,
   TrendingUp,
+  Users,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -74,6 +75,7 @@ import {
 } from "../hooks/useQueries";
 import { AIWriterTab } from "./AIWriterTab";
 import { AutoFetchTab } from "./AutoFetchTab";
+import { UsersTab } from "./UsersTab";
 
 // ── Category Config ──────────────────────────────────────────────
 
@@ -1670,6 +1672,14 @@ export function AdminPage() {
               <ImageIcon className="w-4 h-4" />
               Logo
             </TabsTrigger>
+            <TabsTrigger
+              value="users"
+              className="flex items-center gap-2"
+              data-ocid="admin.users.tab"
+            >
+              <Users className="w-4 h-4" />
+              Users
+            </TabsTrigger>
           </TabsList>
 
           {/* ── Articles Tab ── */}
@@ -1899,6 +1909,11 @@ export function AdminPage() {
           {/* ── Logo Tab ── */}
           <TabsContent value="logo">
             <LogoTab />
+          </TabsContent>
+
+          {/* 25002500 Users Tab 25002500 */}
+          <TabsContent value="users">
+            <UsersTab />
           </TabsContent>
         </Tabs>
       </div>

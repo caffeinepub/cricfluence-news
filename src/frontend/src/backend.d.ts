@@ -45,6 +45,20 @@ export interface Sponsor {
     imageUrl: string;
     position: Position;
 }
+export interface User {
+    id: bigint;
+    name: string;
+    email: string;
+    passwordHash: string;
+    createdAt: string;
+}
+export type RegisterResult =
+    | { __kind__: "ok"; value: bigint }
+    | { __kind__: "emailTaken" };
+export type LoginResult =
+    | { __kind__: "ok"; value: User }
+    | { __kind__: "notFound" }
+    | { __kind__: "wrongPassword" };
 export interface http_header {
     value: string;
     name: string;
@@ -79,12 +93,16 @@ export interface backendInterface {
     getAllArticles(): Promise<Array<Article>>;
     getAllComments(): Promise<Array<Comment>>;
     getAllSponsors(): Promise<Array<Sponsor>>;
+    getAllUsers(): Promise<Array<User>>;
     getArticleById(id: bigint): Promise<Article>;
     getArticlesByCategory(category: Category): Promise<Array<Article>>;
     getCommentsByArticle(articleId: bigint): Promise<Array<Comment>>;
     getSponsorById(id: bigint): Promise<Sponsor>;
+    getUserCount(): Promise<bigint>;
     likeArticle(id: bigint): Promise<void>;
+    loginUser(email: string, passwordHash: string): Promise<LoginResult>;
     recordView(id: bigint): Promise<void>;
+    registerUser(name: string, email: string, passwordHash: string, createdAt: string): Promise<RegisterResult>;
     seedSampleData(): Promise<void>;
     togglePinComment(id: bigint): Promise<void>;
     toggleSponsorActive(id: bigint): Promise<void>;

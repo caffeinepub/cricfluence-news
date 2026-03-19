@@ -1,7 +1,15 @@
-import { Menu, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogIn, LogOut, Menu, UserCircle, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useLogoUrl } from "../../hooks/useLogoStore";
+import { useUserAuth } from "../../hooks/useUserAuth";
+import { AccountModal } from "../AccountModal";
 
 interface NavbarProps {
   currentPage: string;
@@ -20,12 +28,17 @@ const NAV_LINKS = [
 
 export function Navbar({ currentPage, onNavigate }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const logoUrl = useLogoUrl();
+  const { user, logout } = useUserAuth();
 
   const handleNav = (id: string) => {
     onNavigate(id);
     setMenuOpen(false);
   };
+
+  const firstLetter = user?.name?.[0]?.toUpperCase() ?? "?";
+  const firstName = user?.name?.split(" ")[0] ?? "";
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/60">
@@ -62,7 +75,6 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
                   }`}
                 >
                   {link.label}
-                  {/* Active underline */}
                   {isActive && (
                     <motion.div
                       layoutId="nav-underline"
@@ -79,20 +91,64 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
             })}
           </nav>
 
-          {/* ── Mobile hamburger ── */}
-          <button
-            type="button"
-            className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Toggle menu"
-            data-ocid="nav.menu.toggle"
-          >
-            {menuOpen ? (
-              <X className="w-5 h-5" />
+          {/* ── Right side: Account + mobile hamburger ── */}
+          <div className="flex items-center gap-2">
+            {/* Account button (desktop) */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-600 text-primary"
+                    data-ocid="nav.account.toggle"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-800">
+                      {firstLetter}
+                    </span>
+                    <span className="max-w-[80px] truncate">{firstName}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  data-ocid="nav.account.dropdown_menu"
+                >
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="flex items-center gap-2 text-sm cursor-pointer"
+                    data-ocid="nav.account.logout.button"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <Menu className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setAccountOpen(true)}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-600 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all"
+                data-ocid="nav.signin.button"
+              >
+                <UserCircle className="w-4 h-4" />
+                Sign In
+              </button>
             )}
-          </button>
+
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              data-ocid="nav.menu.toggle"
+            >
+              {menuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -132,9 +188,42 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
                 );
               })}
             </nav>
+            {/* Mobile account row */}
+            <div className="px-4 pb-3">
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-[12px] font-600 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                  data-ocid="nav.mobile.logout.button"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out ({firstName})
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setAccountOpen(true);
+                  }}
+                  className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-[12px] font-600 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                  data-ocid="nav.mobile.signin.button"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In / Register
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Account Modal */}
+      <AccountModal open={accountOpen} onOpenChange={setAccountOpen} />
     </header>
   );
 }

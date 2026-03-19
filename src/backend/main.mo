@@ -72,6 +72,31 @@ actor {
     };
   };
 
+  type User = {
+    id : Nat;
+    name : Text;
+    email : Text;
+    passwordHash : Text;
+    createdAt : Text;
+  };
+
+  module User {
+    public func compare(a : User, b : User) : Order.Order {
+      Nat.compare(b.id, a.id);
+    };
+  };
+
+  type RegisterResult = {
+    #ok : Nat;
+    #emailTaken;
+  };
+
+  type LoginResult = {
+    #ok : User;
+    #notFound;
+    #wrongPassword;
+  };
+
   var nextArticleId = 1;
   let articles = Map.empty<Nat, Article>();
 
@@ -80,6 +105,9 @@ actor {
 
   var nextCommentId = 1;
   let comments = Map.empty<Nat, Comment>();
+
+  var nextUserId = 1;
+  let users = Map.empty<Nat, User>();
 
   // AI integration setup
   var anthropicApiKey : Text = "ANTHROPIC_API_KEY";
@@ -433,6 +461,53 @@ actor {
         comments.add(id, updatedComment);
       };
     };
+  };
+
+  // USERS
+
+  public shared ({ caller }) func registerUser(name : Text, email : Text, passwordHash : Text, createdAt : Text) : async RegisterResult {
+    // Check if email already exists
+    let existing = users.values().toArray().filter(
+      func(u : User) : Bool { u.email == email }
+    );
+    if (existing.size() > 0) {
+      return #emailTaken;
+    };
+    let user : User = {
+      id = nextUserId;
+      name;
+      email;
+      passwordHash;
+      createdAt;
+    };
+    users.add(nextUserId, user);
+    nextUserId += 1;
+    #ok(user.id);
+  };
+
+  public query ({ caller }) func loginUser(email : Text, passwordHash : Text) : async LoginResult {
+    let found = users.values().toArray().filter(
+      func(u : User) : Bool { u.email == email }
+    );
+    switch (found.size()) {
+      case 0 { #notFound };
+      case _ {
+        let user = found[0];
+        if (user.passwordHash == passwordHash) {
+          #ok(user);
+        } else {
+          #wrongPassword;
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func getAllUsers() : async [User] {
+    users.values().toArray().sort();
+  };
+
+  public query ({ caller }) func getUserCount() : async Nat {
+    users.size();
   };
 
   // AI-powered article generation

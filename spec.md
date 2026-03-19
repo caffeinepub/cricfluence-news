@@ -1,22 +1,30 @@
 # CricFluence News
 
 ## Current State
-Full-stack news site with articles, sponsors, comments, auto-fetch RSS, and admin panel. Articles and sponsors are not loading reliably after the page loads.
+Full news site with articles, sponsors, comments, auto-fetch, AI writer, statistics, logo management, search, video ads, refresh button, and a password-protected admin panel at /#/admin.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Robust loading with proper retry logic and error recovery
+- `User` type in backend: id, name, email, passwordHash, createdAt
+- `registerUser(name, email, passwordHash)` -- returns user id or error if email taken
+- `loginUser(email, passwordHash)` -- returns user record or error
+- `getAllUsers()` -- admin only, returns all users
+- `getUserCount()` -- returns total count
+- Public Register/Login modal accessible from Navbar (Account icon button)
+- `useUserAuth` hook storing logged-in user in localStorage
+- Admin "Users" tab showing table of all registered users (name, email, joined date)
 
 ### Modify
-- `useActor.ts`: Remove the complex `useEffect` invalidation loop; rely on `queryKey` containing the identity principal so React Query automatically refetches when the actor changes
-- `useQueries.ts`: Fix `seedSampleData` to catch trap errors silently; add `refetchOnWindowFocus: false` to prevent unnecessary refetches; increase `retryDelay` with exponential backoff
-- `HomePage.tsx`: Guard `seedSampleData` call so it doesn't get called more than once and doesn't block article display when seed fails
+- Navbar: add Account icon button on the right side (desktop + mobile) that opens login/register modal
+- AdminPage: add Users tab
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Fix `useActor.ts` - remove the `useEffect` that invalidates/refetches all queries; queries auto-refetch because queryKey changes when actor changes
-2. Fix `useQueries.ts` - wrap seed mutation to handle trap errors; improve retry config
-3. Fix `HomePage.tsx` - make seeding more robust so errors in seeding don't block article display
+1. Add User type + backend functions (register, login, getAllUsers, getUserCount) to main.mo
+2. Create useUserAuth hook (localStorage persistence)
+3. Create AccountModal component (register/sign in tabs, SHA-256 password hash via Web Crypto API)
+4. Update Navbar to show Account button (and logged-in user avatar/name when authed)
+5. Add Users tab to AdminPage showing all users in a table
